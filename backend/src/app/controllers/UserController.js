@@ -17,6 +17,14 @@ class UserController {
       email,
     });
   }
+
+  async update(req, res) {
+    const { email, oldPassword } = req.body;
+
+    // termina update
+
+    return res.json();
+  }
 }
 
 export default new UserController();
