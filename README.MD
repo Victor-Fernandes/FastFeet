@@ -41,6 +41,9 @@
   Link para download do Yarn</a></h2>
 </p>
 
+<p>
+  Clonar o repositório.
+</p>
 
 ```sh
 git clone https://github.com/Victor-Fernandes/FastFeet
