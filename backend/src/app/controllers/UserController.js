@@ -29,6 +29,7 @@ class UserController {
     if (password !== confirmPassword) {
       return res.status(400).json({ error: 'Passwords do not match!' });
     }
+
     const { id, name, email } = await User.create(req.body);
 
     return res.json({
