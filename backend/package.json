@@ -9,8 +9,11 @@
     "eslintRun": "yarn eslint --fix src --ext js"
   },
   "dependencies": {
+    "@sentry/node": "5.13.0",
     "bcryptjs": "^2.4.3",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-async-errors": "^3.1.1",
     "jsonwebtoken": "^8.5.1",
     "pg": "^7.18.1",
     "pg-hstore": "^2.3.3",
