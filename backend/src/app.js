@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import express from 'express';
 import path from 'path';
 import Youch from 'youch';
@@ -21,6 +23,12 @@ class App {
   middleware() {
     this.server.use(Sentry.Handlers.requestHandler());
     this.server.use(express.json());
+
+    // serve arquivos estaticos q podem ser abertos no browser
+    this.server.use(
+      '/files',
+      express.static(path.resolve(__dirname, '..', 'tmp', 'uploads'))
+    );
   }
 
   routes() {
@@ -30,9 +38,9 @@ class App {
 
   exceptionHandler() {
     // middleware de tratamento de exceptions
-    this.use.server(async (err, req, res, next) => {
+    this.server.use(async (err, req, res, next) => {
       if (process.env.NODE_ENV === 'development') {
-        const errors = await new Youch(err, req).toJson();
+        const errors = await new Youch(err, req).toJSON();
 
         return res.status(500).json(errors);
       }
