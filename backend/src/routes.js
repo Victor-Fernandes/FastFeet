@@ -7,6 +7,7 @@ import SessionController from './app/controllers/SessionController';
 import RecipientsController from './app/controllers/RecipientsController';
 import DeliverymanController from './app/controllers/DeliverymanController';
 import FileController from './app/controllers/FileController';
+import OrderController from './app/controllers/OrderController';
 import authMiddleware from './app/middlewares/auth';
 
 const routes = new Router();
@@ -29,6 +30,10 @@ routes.get('/deliverymans', DeliverymanController.index);
 routes.put('/deliverymans/:id', DeliverymanController.update);
 routes.delete('/deliverymans/:id', DeliverymanController.delete);
 
+// Order routes
+routes.post('/orders', OrderController.store);
+
+// file uploads
 routes.post('/files', upload.single('file'), FileController.store);
 
 export default routes;
