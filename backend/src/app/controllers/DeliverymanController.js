@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import * as Yup from 'yup';
 import Deliveryman from '../models/Deliveryman';
+import File from '../models/File';
 
 class DeliverymanController {
   async store(req, res) {
@@ -37,6 +38,14 @@ class DeliverymanController {
       order: ['id'],
       limit: 20,
       offset: (page - 1) * 20,
+      attributes: ['id', 'name', 'email', 'avatar_id'],
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['name', 'path', 'url'],
+        },
+      ],
     });
 
     return res.json(list);
@@ -46,6 +55,7 @@ class DeliverymanController {
     const schema = Yup.object().shape({
       name: Yup.string(),
       email: Yup.string(),
+      avatar_id: Yup.number().integer(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -60,7 +70,7 @@ class DeliverymanController {
       return res.status(401).json({ error: 'Deliveryman does not exist!' });
     }
 
-    const { name, email } = req.body;
+    const { name, email, avatar_id } = req.body;
 
     if (email && email !== deliveryman.email) {
       const UserExist = await Deliveryman.findOne({ where: { email } });
@@ -70,12 +80,17 @@ class DeliverymanController {
       }
     }
 
+    if (!(await File.findByPk(req.body.avatar_id))) {
+      return res.status(400).json({ error: 'Avatar file does not exist.' });
+    }
+
     await deliveryman.update(req.body);
 
     return res.json({
       id,
       name,
       email,
+      avatar_id,
     });
   }
 
