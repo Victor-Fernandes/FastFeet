@@ -6,6 +6,9 @@ import Deliveryman from '../models/Deliveryman';
 // import File from '../models/File';
 import Recipient from '../models/Recipients';
 
+import CreateMail from '../jobs/CreateMail';
+import Queue from '../../lib/Queue';
+
 class OrderController {
   async store(req, res) {
     const schema = await Yup.object().shape({
@@ -33,6 +36,35 @@ class OrderController {
     }
 
     const { id, product } = await Order.create(req.body);
+
+    const order = await Order.findByPk(id, {
+      attributes: ['product'],
+      include: [
+        {
+          model: Deliveryman,
+          as: 'deliveryman',
+          attributes: ['name', 'email'],
+        },
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: [
+            'recipient_name',
+            'street',
+            'number',
+            'complement',
+            'state',
+            'city',
+            'zip_code',
+          ],
+        },
+      ],
+    });
+
+    await Queue.add(CreateMail.key, {
+      order,
+    });
+
     return res.json({
       id,
       recipient_id,
