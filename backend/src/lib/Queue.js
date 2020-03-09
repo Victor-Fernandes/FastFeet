@@ -2,8 +2,8 @@
 /* eslint-disable class-methods-use-this */
 import Bee from 'bee-queue';
 
-import redisConfig from '../config/redis';
 import CreateMail from '../app/jobs/CreateMail';
+import redisConfig from '../config/redis';
 
 const jobs = [CreateMail];
 
@@ -27,12 +27,13 @@ class Queue {
     });
   }
 
+  //
   add(queue, job) {
     return this.queues[queue].bee.createJob(job).save();
   }
 
   // processa os jobs em background
-  processoQueue() {
+  processQueue() {
     jobs.forEach(job => {
       const { bee, handle } = this.queues[job.key];
 
