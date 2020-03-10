@@ -1,13 +1,13 @@
 /* eslint-disable class-methods-use-this */
 import * as Yup from 'yup';
-
-import Order from '../models/Orders';
-import Deliveryman from '../models/Deliveryman';
-// import File from '../models/File';
-import Recipient from '../models/Recipients';
-
-import CreateMail from '../jobs/CreateMail';
+import { startOfHour, parseISO, isBefore, format, subHours } from 'date-fns';
+import pt from 'date-fns/locale/pt';
 import Queue from '../../lib/Queue';
+import CreateMail from '../jobs/CreateMail';
+import Deliveryman from '../models/Deliveryman';
+import File from '../models/File';
+import Order from '../models/Orders';
+import Recipient from '../models/Recipients';
 
 class OrderController {
   async store(req, res) {
@@ -71,6 +71,73 @@ class OrderController {
       deliveryman_id,
       product,
     });
+  }
+
+  async index(req, res) {
+    const { page = 1 } = req.query;
+
+    const list = await Order.findAll({
+      order: ['id'],
+      limit: 20, // limitando itens por page
+      offset: (page - 1) * 20,
+      attributes: [
+        'id',
+        'recipient_id',
+        'deliveryman_id',
+        'signature_id',
+        'canceled_at',
+        'start_date',
+        'end_date',
+      ],
+      include: [
+        {
+          model: Deliveryman,
+          as: 'deliveryman',
+          attributes: ['id', 'name', 'email', 'avatar_id'],
+          include: [
+            {
+              model: File,
+              as: 'avatar',
+              attributes: ['name', 'path', 'url'],
+            },
+          ],
+        },
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: [
+            'recipient_name',
+            'street',
+            'number',
+            'complement',
+            'state',
+            'city',
+            'zip_code',
+          ],
+        },
+        {
+          model: File,
+          as: 'signature',
+          attributes: ['name', 'path', 'url'],
+        },
+      ],
+    });
+
+    return res.json(list);
+  }
+
+  async delete(req, res) {
+    const order = await Order.findByPk(req.params.id);
+
+    if (!order) {
+      return res.status(401).json({ error: 'Orders does not exist!' });
+    }
+
+    // coloca a data do cancelamento da entrega
+    order.canceled_at = new Date();
+
+    await order.save();
+    return res.json(order);
   }
 }
 
