@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import * as Yup from 'yup';
-import { startOfHour, parseISO, isBefore, format, subHours } from 'date-fns';
-import pt from 'date-fns/locale/pt';
+// import { startOfHour, parseISO, isBefore, format, subHours } from 'date-fns';
+// import pt from 'date-fns/locale/pt';
 import Queue from '../../lib/Queue';
 import CreateMail from '../jobs/CreateMail';
 import Deliveryman from '../models/Deliveryman';
@@ -126,18 +126,52 @@ class OrderController {
     return res.json(list);
   }
 
-  async delete(req, res) {
-    const order = await Order.findByPk(req.params.id);
+  async update(req, res) {
+    const schema = await Yup.object().shape({
+      recipient_id: Yup.number().integer(),
+      deliveryman_id: Yup.number().integer(),
+      product: Yup.string(),
+    });
 
-    if (!order) {
-      return res.status(401).json({ error: 'Orders does not exist!' });
+    if (!(await schema.isValid(req.body))) {
+      return res.status(400).json({ error: 'Validation fails' });
     }
 
-    // coloca a data do cancelamento da entrega
-    order.canceled_at = new Date();
+    const { id } = req.params;
 
-    await order.save();
+    const order = await Order.findByPk(id);
+
+    if (!order) {
+      return res.status(401).json({ error: 'Order does not exist!' });
+    }
+
+    const { recipient_id, deliveryman_id } = req.body;
+
+    if (!(await Recipient.findByPk(recipient_id))) {
+      return res.status(400).json({ error: 'Recipient does not exist.' });
+    }
+
+    if (!(await Deliveryman.findByPk(deliveryman_id))) {
+      return res.status(400).json({ error: 'Deliveryman does not exist.' });
+    }
+
+    await order.update(req.body);
+
     return res.json(order);
+  }
+
+  async delete(req, res) {
+    const { id } = req.params;
+
+    const order = await Order.findByPk(id);
+
+    if (!order) {
+      return res.status(401).json({ error: 'Order does not exist!' });
+    }
+
+    await order.destroy(id);
+
+    return res.json({ message: 'Order was deleted!' });
   }
 }
 
