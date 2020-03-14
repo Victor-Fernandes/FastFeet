@@ -2,6 +2,7 @@
 import { getHours, isAfter, isBefore, parseISO, startOfHour } from 'date-fns';
 import * as Yup from 'yup';
 import Deliveryman from '../models/Deliveryman';
+import File from '../models/File';
 import Order from '../models/Orders';
 
 class DeliveryStatusController {
@@ -44,7 +45,7 @@ class DeliveryStatusController {
 
     if (
       isBefore(startHour, getHours(new Date().setHours(8))) ||
-      isAfter(endHour, getHours(new Date().setHours(22)))
+      isAfter(endHour, getHours(new Date().setHours(18)))
     ) {
       return res.status(401).json({ error: 'Out of delivery time!' });
     }
@@ -58,6 +59,7 @@ class DeliveryStatusController {
       deliveryman_id: Yup.number()
         .integer()
         .required(),
+      end_date: Yup.date().required(),
       signature_id: Yup.number()
         .integer()
         .required(),
@@ -81,13 +83,16 @@ class DeliveryStatusController {
       return res.status(401).json({ error: 'Deliveryman does not exist!' });
     }
 
+    if (!(await File.findByPk(signature_id))) {
+      return res.status(401).json({ error: 'Signature does not exist!' });
+    }
     // Verificando se end_date é antes das 08:00 ou depois de 18:00
     const startHour = getHours(parseISO(end_date));
     const endHour = getHours(parseISO(end_date));
 
     if (
       isBefore(startHour, getHours(new Date().setHours(8))) ||
-      isAfter(endHour, getHours(new Date().setHours(22)))
+      isAfter(endHour, getHours(new Date().setHours(18)))
     ) {
       return res.status(401).json({ error: 'Out of delivery time!' });
     }
