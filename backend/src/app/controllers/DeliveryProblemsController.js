@@ -5,6 +5,7 @@ import CancellationMail from '../jobs/CancellationMail';
 import Deliveryman from '../models/Deliveryman';
 import DeliveryProblems from '../models/DeliveryProblems';
 import Order from '../models/Orders';
+import Recipients from '../models/Recipients';
 
 class DeliveryProblemsController {
   async store(req, res) {
@@ -61,32 +62,21 @@ class DeliveryProblemsController {
         .json({ error: 'Delivery problem does not exist.' });
     }
 
-    const order = await Order.findByPk(
-      deliveryProblems.delivery_id // , {
-      // include: [
-      //   {
-      //     attributes: ['product'],
-      //     include: [
-      //       {
-      //         model: Deliveryman,
-      //         as: 'deliveryman',
-      //         attributes: ['name', 'email'],
-      //       },
-      //     ],
-      //   },
-      //  ],}
-    );
+    const order = await Order.findByPk(deliveryProblems.delivery_id, {
+      include: [
+        // lembrar de incluir os 2 models
+        { model: Deliveryman, as: 'deliveryman' },
+        { model: Recipients, as: 'recipient' },
+      ],
+    });
 
-    // const { name, email } = await order.deliveryman;
     order.canceled_at = new Date();
 
     await order.save();
 
-    // await Queue.add(CancellationMail.key, {
-    //   name,
-    //   email,
-    //   order,
-    // });
+    await Queue.add(CancellationMail.key, {
+      order,
+    });
 
     return res.json(order);
   }
