@@ -9,16 +9,16 @@ class CreateMail {
 
   async handle({ data }) {
     const {
-      order: { name, email, product },
+      order: { deliveryman, product },
     } = data;
 
     await Mail.sendMail({
       from: 'Equipe FastFeet <noreply@fastfeet.com>',
-      to: `${name} <${email}>`,
+      to: `${deliveryman.name} <${deliveryman.email}>`,
       subject: 'Entrega cancelada!',
       template: 'cancellation',
       context: {
-        startedMessage: `Ola ${name}`,
+        startedMessage: `Ola ${deliveryman.name}`,
         product: `A encomenda com o produto ${product} foi cancelada!`,
       },
     });
